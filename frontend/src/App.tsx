@@ -26,6 +26,7 @@ import {
   getEnergy,
   getMeasurements,
   getAlerts,
+  getCurrentRole,
 } from "./Api";
 
 import "./App.css";
@@ -71,6 +72,8 @@ function getInitials(fullName: string, email = ""): string {
 
 function App() {
   const [initials, setInitials] = useState("GE");
+  const [role, setRole] = useState<"admin" | "user">("user");
+  const isAdmin = role === "admin";
   const [profileOpen, setProfileOpen] = useState(false);
   const [accountPage, setAccountPage] = useState("");
 
@@ -159,6 +162,26 @@ function App() {
     };
   }, []);
 
+  // Rolul este confirmat de backend; implicit utilizatorul are doar citire.
+  useEffect(() => {
+    let mounted = true;
+    const loadRole = async () => {
+      try {
+        const currentRole = await getCurrentRole();
+        if (mounted) setRole(currentRole);
+      } catch (error) {
+        console.error("Nu s-a putut verifica rolul:", error);
+        if (mounted) setRole("user");
+      }
+    };
+    loadRole();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) setRole("user");
+      else window.setTimeout(loadRole, 0);
+    });
+    return () => { mounted = false; listener.subscription.unsubscribe(); };
+  }, []);
+
   // ÎNCĂRCARE DATE
   const refreshData = async () => {
     try {
@@ -241,6 +264,7 @@ function App() {
     alerts,
     selectedLocation,
     onRefresh: refreshData,
+    isAdmin,
   };
 
   const renderPage = () => {

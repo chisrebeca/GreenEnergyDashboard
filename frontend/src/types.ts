@@ -48,6 +48,7 @@ export type Props = {
   alerts: Alert[];
   selectedLocation: string;
   onRefresh: () => Promise<void>;
+  isAdmin?: boolean;
 };
 
 

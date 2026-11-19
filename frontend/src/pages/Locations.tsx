@@ -3,7 +3,7 @@ import { number, allowedLocation } from "../utils";
 import { useState, type FormEvent } from "react";
 import { MapPin, Plus, Pencil, Trash2, X } from "lucide-react";
 
-export default function Locations({ locations, devices, energy, selectedLocation, onRefresh }: Props) {
+export default function Locations({ locations, devices, energy, selectedLocation, onRefresh, isAdmin = false }: Props) {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<Location | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -76,9 +76,11 @@ export default function Locations({ locations, devices, energy, selectedLocation
     return (
       <div className="subpage">
         <div className="subpage-heading">
-          <button className="crud-primary" onClick={() => openForm()}>
-            <Plus size={16} /> Adaugă locație
-          </button>
+          {isAdmin && (
+            <button className="crud-primary" onClick={() => openForm()}>
+              <Plus size={16} /> Adaugă locație
+            </button>
+          )}
         </div>
 
         <input
@@ -111,10 +113,12 @@ export default function Locations({ locations, devices, energy, selectedLocation
                 </div>
                 <h3>{l.name}</h3>
                 <p>{l.address ?? "Adresă nespecificată"}</p>
-                <div className="crud-actions">
-                  <button onClick={() => openForm(l)}><Pencil size={15} /> Editează</button>
-                  <button className="crud-danger" onClick={() => deleteLocation(l)}><Trash2 size={15} /> Șterge</button>
-                </div>
+                {isAdmin && (
+                  <div className="crud-actions">
+                    <button onClick={() => openForm(l)}><Pencil size={15} /> Editează</button>
+                    <button className="crud-danger" onClick={() => deleteLocation(l)}><Trash2 size={15} /> Șterge</button>
+                  </div>
+                )}
                 <div className="data-stats">
                   <div>
                     <small>Dispozitive</small>
@@ -133,7 +137,7 @@ export default function Locations({ locations, devices, energy, selectedLocation
             );
           })}
         </div>
-        {formOpen && (
+        {isAdmin && formOpen && (
           <div className="crud-overlay" onClick={() => !saving && setFormOpen(false)}>
             <div className="crud-modal" role="dialog" aria-modal="true" aria-label="Formular locație" onClick={e => e.stopPropagation()}>
               <div className="crud-modal-header">
