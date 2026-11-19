@@ -2,11 +2,28 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { supabase } from "./supabase.js";
+import { getUserRole, requireAdmin } from "./roleAuth.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
+
+// Protejează toate operațiile de modificare a locațiilor, inclusiv rutele duplicate.
+app.use("/api/locations", (req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  return requireAdmin(req, res, next);
+});
+
+app.get("/api/me", async (req, res) => {
+  const authorization = req.headers.authorization;
+  const token = authorization?.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!token) { res.status(401).json({ error: "Autentificare necesară." }); return; }
+  const result = await getUserRole(token);
+  if (result.error || !result.user) { res.status(401).json({ error: "Sesiune invalidă sau expirată." }); return; }
+  if (!result.role) { res.status(403).json({ error: "Contul nu are un rol configurat. Contactează administratorul." }); return; }
+  res.json({ userId: result.user.id, role: result.role });
+});
 
 app.get("/", (_req, res) => res.json({ message: "Green Energy API functioneaza!" }));
 
