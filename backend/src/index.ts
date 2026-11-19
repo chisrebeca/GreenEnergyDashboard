@@ -10,7 +10,7 @@ app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
 // Protejează toate operațiile de modificare a locațiilor, inclusiv rutele duplicate.
-app.use("/api/locations", (req, res, next) => {
+app.use("/api", (req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   return requireAdmin(req, res, next);
 });
